@@ -1,0 +1,74 @@
+version: "3"
+volumes:
+  composer:
+  npm:
+  pgsql:
+  rabbitmq:
+  es:
+services:
+  php:
+    build:
+      context: .
+      dockerfile: .docker/dev/php.dockerfile
+    volumes:
+      - ./:/var/www/html
+      - composer:/home/www-data/.composer
+    working_dir: /var/www/html
+    environment:
+      XDEBUG_CONFIG: "remote_host=host.docker.internal remote_enable=1 profiler_enable=0 profiler_output_dir=/var/www/html/profile"
+      COMPOSER_MEMORY_LIMIT: "-1"
+  nginx:
+    depends_on:
+      - php
+    image: nginx:1.15.5
+    volumes:
+      - ./.docker/dev/nginx.default.conf:/etc/nginx/conf.d/default.conf
+      - ./:/var/www/html
+    ports:
+      - 8080:80
+    working_dir: /var/www/html
+  #httpd:
+  #  depends_on:
+  #    - php
+  #  image: httpd:2.4.41-alpine
+  #  volumes:
+  #    - ./.docker/dev/httpd.conf:/usr/local/apache2/conf/httpd.conf
+  #    - ./:/var/www/html
+  #  ports:
+  #    - 9090:80
+  #  working_dir: /var/www/html
+  pgsql:
+    depends_on:
+      - php
+    image: postgres:11.2-alpine
+    volumes:
+      - pgsql:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: root
+    ports:
+      - 5432:5432
+  rabbitmq:
+    depends_on:
+      - php
+    image: rabbitmq:3.7.17-alpine
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    ports:
+      - 15672:15672
+  es:
+    depends_on:
+      - php
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+    volumes:
+      - es:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+  node:
+    image: node:12.10.0-alpine
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="app" default="build:prod" basedir=".">
+  <tstamp>
+    <format property="timestamp" pattern="%Y-%m-%d-%H-%M-%S"/>
+  </tstamp>
+  <property name="prod:root" value="/var/www"/>
+  <property name="prod:root:latest" value="/var/www.build.${timestamp}"/>
+
+  <target name="app:clean">
+    <delete includeemptydirs="false">
+      <fileset dir="./data" includes="**">
+        <exclude name=".gitkeep"/>
+        <exclude name=".gitignore"/>
+        <exclude name="/cache/"/>
+      </fileset>
+    </delete>
+    <delete includeemptydirs="true">
+      <fileset dir="./data/cache" includes="**">
+        <exclude name=".gitkeep"/>
+        <exclude name=".gitignore"/>
+      </fileset>
+    </delete>
+  </target>
+
+  <target name="build:dev">
+    <exec command="composer install"/>
+    <exec command="npm install"/>
+    <exec command="npm run build:dev"/>
+  </target>
+
+  <target name="build:test" depends="build:dev">
+    <exec command="php bin/doctrine orm:schema-tool:drop --force"/>
+    <exec command="php bin/doctrine orm:schema-tool:update --force"/>
+    <exec command="php bin/doctrine app:fake-data"/>
+  </target>
+
+  <target name="build:prod">
+    <exec command="composer --no-dev --classmap-authoritative --optimize-autoloader install"/>
+    <exec command="npm install"/>
+    <exec command="npm run build:prod"/>
+  </target>
+
+  <target name="deploy:prod" depends="build:prod,app:clean">
+    <exec command="rm ${prod:root}"/>
+    <exec command="ln -s ${prod:root:latest} ${prod:root}"/>
+  </target>
+
+  <target name="app:phpunit" depends="build:dev">
+    <exec command="php vendor/bin/phpunit"/>
+  </target>
+
+  <target name="app:phpstan" depends="build:dev">
+    <exec command="php vendor/bin/phpstan analyse src test bin --level 3"/>
+  </target>
+
+  <target name="app:phpcbf" depends="build:dev">
+    <exec command="php vendor/bin/phpcbf src test bin"/>
+  </target>
+
+  <target name="app:phpcs" depends="build:dev">
+    <exec command="php vendor/bin/phpcs --standard=PSR12 src test bin"/>
+  </target>
+</project>

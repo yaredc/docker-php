@@ -1,0 +1,29 @@
+{
+  "license": "properitary",
+  "private": true,
+  "scripts": {
+    "build:dev:ts": "NODE_ENV=development webpack",
+    "build:prod:ts": "NODE_ENV=production webpack",
+    "build:dev:sass": "NODE_ENV=development node-sass --source-map-embed --source-comments public/.sass/frontend.sass public/css/frontend.css",
+    "build:prod:sass": "NODE_ENV=production node-sass --output-style=compressed public/.sass/frontend.sass public/css/frontend.css",
+    "build:dev": "npm run build:dev:sass && npm run build:dev:ts",
+    "build:prod": "npm run build:prod:sass && npm run build:prod:ts"
+  },
+  "dependencies": {
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7",
+    "ts-loader": "^6.0.4",
+    "js-loader": "^0.1.1",
+    "bootstrap": "^4.3.1",
+    "bootswatch": "^4.3.1",
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.4.1",
+    "jquery-ui": "^1.12.1",
+    "node-sass": "^4.12.0",
+    "popper.js": "^1.15.0",
+    "typescript": "^3.6.2"
+  },
+  "engines": {
+    "node": "^12"
+  }
+}
